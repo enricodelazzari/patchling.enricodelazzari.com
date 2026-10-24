@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Patchling</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#E9EEEC; --surface:#F7FAF9; --ink:#1E2A32; --muted:#55636B; --line:#C9D3D0;
+  --signal:#F2C230; --danger:#C8402F; --ok:#2F7D5B; --accent:#2B5D7C; --body-c:#8FC1B0; --screen:#E8F5EF; --stage:#DCE6E2;
+  --display:"Bricolage Grotesque","Avenir Next","Segoe UI",system-ui,sans-serif;
+  --text:"Atkinson Hyperlegible","Segoe UI",system-ui,-apple-system,sans-serif;
+  color-scheme:light; box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#141C21; --surface:#1D282E; --ink:#E3EBE8; --muted:#9AA8AE; --line:#33424A;
+    --signal:#E8B923; --danger:#E0604E; --ok:#4FA67F; --accent:#7FB3D3; --body-c:#5E9A86; --screen:#D9EEE5; --stage:#1A2429; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#141C21; --surface:#1D282E; --ink:#E3EBE8; --muted:#9AA8AE; --line:#33424A;
+  --signal:#E8B923; --danger:#E0604E; --ok:#4FA67F; --accent:#7FB3D3; --body-c:#5E9A86; --screen:#D9EEE5; --stage:#1A2429; color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--text);font-size:17px;line-height:1.5;-webkit-tap-highlight-color:transparent}
+main{max-width:560px;margin:0 auto;padding:16px 16px 40px}
+h1,h2,h3{font-family:var(--display);line-height:1.1;margin:0}
+h1{font-size:clamp(2.2rem,9vw,3.2rem);font-weight:800;letter-spacing:-.02em}
+h2{font-size:1.4rem;font-weight:800}
+p{margin:.6em 0}
+.muted{color:var(--muted)}
+.tape{height:12px;background:repeating-linear-gradient(-45deg,var(--signal) 0 12px,var(--ink) 12px 24px);border-radius:2px}
+button{font:inherit;cursor:pointer;color:inherit}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.primary{background:var(--ink);color:var(--bg);border:0;border-radius:12px;padding:14px 20px;font-weight:700;width:100%;font-size:1.05rem}
+section[hidden]{display:none!important}
+
+/* intro */
+.hero{padding:16px 0 4px}
+ol.cycle{list-style:none;padding:0;margin:14px 0;counter-reset:c}
+ol.cycle li{counter-increment:c;display:grid;grid-template-columns:2rem 1fr;gap:0 10px;padding:12px 14px;border-top:1px solid var(--line)}
+ol.cycle li::before{content:counter(c);font-family:var(--display);font-weight:800;font-size:1.3rem;color:var(--muted)}
+ol.cycle li.here{background:linear-gradient(90deg,color-mix(in srgb,var(--signal) 32%,transparent),transparent);border-radius:10px;border-top-color:transparent;margin:4px 0}
+ol.cycle li.here + li{border-top-color:transparent}
+ol.cycle span{grid-column:2;color:var(--muted);font-size:.93rem}
+.rules{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin:14px 0 18px}
+.rules ul{margin:.3em 0;padding-left:1.2em}
+.rules li{margin:.2em 0}
+
+/* game */
+.hud{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.month{font-family:var(--display);font-weight:800;font-size:1.25rem;white-space:nowrap}
+.timeline{flex:1;height:8px;background:var(--line);border-radius:4px;position:relative;overflow:visible}
+.timeline .fill{height:100%;background:var(--ink);border-radius:4px}
+.timeline .php{position:absolute;left:50%;top:-4px;width:4px;height:16px;background:var(--danger);border-radius:2px}
+.coins{font-weight:700;white-space:nowrap}
+.pause{border:2px solid var(--ink);background:transparent;border-radius:50%;width:36px;height:36px;font-weight:800;line-height:1;padding:0}
+
+.stage{position:relative;height:300px;background:var(--stage);border-radius:18px;overflow:hidden;touch-action:manipulation;user-select:none}
+.stage.alarm{animation:alarm .8s steps(2) infinite}
+@keyframes alarm{50%{box-shadow:inset 0 0 0 5px var(--danger)}}
+.floor{position:absolute;left:0;right:0;bottom:0;height:46px;background:color-mix(in srgb,var(--ink) 8%,transparent)}
+.pet{position:absolute;left:50%;bottom:34px;width:150px;margin-left:-75px;transform-origin:50% 100%;animation:bob 2.4s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-6px) scaleY(1.02)}}
+.pet.sad{animation-duration:4s}
+.pet.sick{animation:shiver .25s linear infinite}
+@keyframes shiver{25%{transform:translateX(-2px)}75%{transform:translateX(2px)}}
+.pet.sleep{animation:none;filter:saturate(.4)}
+.pet.infected .bodyfill{fill:#9A6FB0}
+.pet svg{width:100%;height:auto;display:block;overflow:visible}
+.bubble{position:absolute;left:50%;top:14px;transform:translateX(-50%);background:var(--surface);color:var(--ink);border:2px solid var(--ink);border-radius:14px;padding:6px 12px;font-weight:700;font-size:.92rem;max-width:86%;text-align:center;transition:opacity .3s}
+.bubble:empty{opacity:0}
+.bug{position:absolute;width:44px;height:44px;display:grid;place-items:center;font-size:24px;border:0;background:transparent;padding:0;cursor:pointer;z-index:3}
+.bug.squash{animation:squash .3s forwards;pointer-events:none}
+@keyframes squash{to{transform:scale(1.8);opacity:0}}
+.pop{position:absolute;font-weight:800;font-family:var(--display);pointer-events:none;animation:pop 1.1s forwards;z-index:4;font-size:1.05rem}
+@keyframes pop{to{transform:translateY(-40px);opacity:0}}
+.pop.pos{color:var(--ok)} .pop.neg{color:var(--danger)}
+
+.event{position:absolute;left:10px;right:10px;bottom:10px;background:var(--surface);border:2px solid var(--ink);border-radius:14px;padding:10px 12px;z-index:5;box-shadow:0 8px 24px rgba(0,0,0,.2)}
+.event.danger{border-color:var(--danger)}
+.event h3{font-size:1.02rem;font-weight:800}
+.event p{margin:.2em 0 .4em;font-size:.88rem;line-height:1.35}
+.event .countdown{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-bottom:6px}
+.event .countdown div{height:100%;background:var(--danger)}
+.event .btns{display:flex;gap:8px}
+.event .btns button{flex:1;border:2px solid var(--ink);background:var(--bg);border-radius:10px;padding:8px;font-weight:700;font-size:.88rem}
+
+.meters{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;margin:12px 0}
+.meter .row{display:flex;justify-content:space-between;font-size:.85rem;font-weight:700}
+.meter .bar{height:10px;background:var(--line);border-radius:5px;overflow:hidden;margin-top:3px}
+.meter .bar div{height:100%;border-radius:5px;transition:width .2s linear,background .3s}
+
+.energy{display:flex;align-items:center;gap:8px;font-size:.9rem;font-weight:700;margin-bottom:8px}
+.energy .cells{display:flex;gap:3px;flex:1}
+.energy .cells i{flex:1;height:12px;border-radius:3px;background:var(--line)}
+.energy .cells i.on{background:var(--signal)}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.actions button{border:2px solid var(--ink);background:var(--surface);border-radius:14px;padding:10px;text-align:left;min-height:68px;position:relative}
+.actions button b{display:block;font-size:1rem}
+.actions button small{color:var(--muted);font-size:.8rem;line-height:1.25;display:block}
+.actions button .cost{position:absolute;top:8px;right:10px;font-weight:800;font-family:var(--display)}
+.actions button:disabled{opacity:.4;cursor:not-allowed}
+.actions button:not(:disabled):active{transform:scale(.97)}
+.actions .busy{grid-column:1/-1;border:2px dashed var(--ink);border-radius:14px;padding:10px;font-weight:700;text-align:center}
+.actions .busy .bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden;margin-top:6px}
+.actions .busy .bar div{height:100%;background:var(--accent)}
+
+.diary{margin-top:14px}
+.diary ul{list-style:none;padding:0;margin:6px 0}
+.diary li{padding:6px 0;border-top:1px solid var(--line);font-size:.9rem}
+.diary li.neg{color:var(--danger)} .diary li.pos{color:var(--ok)}
+
+/* end */
+.verdict{font-size:clamp(2rem,8vw,2.8rem);margin:14px 0 4px}
+.endstats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:14px 0}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.stat b{display:block;font-family:var(--display);font-size:1.3rem;font-weight:800}
+.stat span{font-size:.8rem;color:var(--muted)}
+.lessons p{border-left:4px solid var(--signal);padding-left:12px}
+
+@media (prefers-reduced-motion: reduce){.pet,.pet.sick{animation:none}.stage.alarm{animation:none;box-shadow:inset 0 0 0 5px var(--danger)}}
+</style>
+</head>
+<body>
+<main>
+
+<section id="intro">
+  <div class="tape"></div>
+  <div class="hero">
+    <h1>Patchling</h1>
+    <p>Your company’s website is alive: it’s hungry for new things, it catches bugs, it gets old. You have three years (three minutes) to keep it healthy.</p>
+  </div>
+  <h2>The life of a piece of software</h2>
+  <ol class="cycle">
+    <li><b>Analysis</b><span>Deciding what it should do, and for whom.</span></li>
+    <li><b>Development</b><span>Writing the code, often on top of components built by others, like PHP.</span></li>
+    <li><b>Testing</b><span>Checking that it works, and that changes don’t break everything else.</span></li>
+    <li><b>Release</b><span>The site goes live.</span></li>
+    <li class="here"><b>Maintenance — you are here</b><span>The longest phase: bugs, updates, cleanup, new features.</span></li>
+    <li><b>End of life</b><span>The site gets rebuilt, or stays online with nobody looking after it.</span></li>
+  </ol>
+  <div class="rules">
+    <ul>
+      <li>Tap the bugs 🐛 to squash them.</li>
+      <li>Spend your team’s energy on the four actions below. It recharges on its own.</li>
+      <li>Listen to your site: it tells you when something’s wrong.</li>
+      <li>Halfway through, a critical vulnerability hits. Be ready.</li>
+    </ul>
+  </div>
+  <button class="primary" id="start">Switch on the site</button>
+</section>
+
+<section id="game" hidden>
+  <div class="hud">
+    <span class="month" id="month">Month 1</span>
+    <div class="timeline"><div class="fill" id="tl"></div><span class="php" title="Critical vulnerability"></span></div>
+    <span class="coins" id="coins">€0k</span>
+    <button class="pause" id="pause" aria-label="Pause">II</button>
+  </div>
+
+  <div class="stage" id="stage">
+    <div class="bubble" id="bubble"></div>
+    <div class="floor"></div>
+    <div class="pet" id="pet">
+      <svg viewBox="0 0 150 170" aria-hidden="true">
+        <line x1="75" y1="4" x2="75" y2="26" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+        <circle id="led" cx="75" cy="6" r="7" fill="#2F7D5B"/>
+        <rect class="bodyfill" x="12" y="24" width="126" height="132" rx="30" fill="var(--body-c)" stroke="currentColor" stroke-width="4"/>
+        <rect x="30" y="42" width="90" height="62" rx="14" fill="var(--screen)" stroke="currentColor" stroke-width="3"/>
+        <g id="eyes" fill="#1E2A32">
+          <ellipse id="eyeL" cx="56" cy="68" rx="6" ry="8"/>
+          <ellipse id="eyeR" cx="94" cy="68" rx="6" ry="8"/>
+        </g>
+        <path id="mouth" d="M60 88 Q75 98 90 88" fill="none" stroke="#1E2A32" stroke-width="4" stroke-linecap="round"/>
+        <g fill="currentColor" opacity=".55"><rect x="34" y="118" width="40" height="6" rx="3"/><rect x="34" y="130" width="28" height="6" rx="3"/><circle cx="112" cy="127" r="7"/></g>
+        <g id="dust" opacity="0" fill="#6B5A44">
+          <circle cx="24" cy="60" r="5"/><circle cx="128" cy="96" r="6"/><circle cx="40" cy="146" r="4"/><circle cx="118" cy="40" r="4"/><circle cx="20" cy="112" r="6"/><circle cx="98" cy="148" r="5"/><circle cx="132" cy="136" r="4"/>
+        </g>
+        <path id="crack" opacity="0" d="M120 30 L108 52 L118 60 L104 84 M40 156 L50 138 L42 128" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+        <g id="web" opacity="0" stroke="currentColor" stroke-width="1.5" fill="none">
+          <path d="M12 54 Q30 40 42 24 M12 54 L42 24 M12 40 Q22 34 28 24 M12 46 Q26 38 36 24"/>
+        </g>
+        <text id="zzz" x="128" y="20" font-size="20" font-weight="800" fill="currentColor" opacity="0" font-family="sans-serif">z z</text>
+      </svg>
+    </div>
+    <div id="bugs"></div>
+    <div id="eventBox"></div>
+  </div>
+
+  <div class="meters">
+    <div class="meter" id="m-happy"><div class="row"><span>Happy users</span><span class="v"></span></div><div class="bar"><div></div></div></div>
+    <div class="meter" id="m-health"><div class="row"><span>Site health</span><span class="v"></span></div><div class="bar"><div></div></div></div>
+    <div class="meter" id="m-debt"><div class="row"><span>Tech debt</span><span class="v"></span></div><div class="bar"><div></div></div></div>
+    <div class="meter" id="m-test"><div class="row"><span>Test coverage</span><span class="v"></span></div><div class="bar"><div></div></div></div>
+    <div class="meter" id="m-age" style="grid-column:1/-1"><div class="row"><span>Component age</span><span class="v"></span></div><div class="bar"><div></div></div></div>
+  </div>
+
+  <div class="energy"><span>Team energy</span><div class="cells" id="cells"></div></div>
+  <div class="actions" id="actions"></div>
+
+  <div class="diary">
+    <h2>Log</h2>
+    <ul id="diary"></ul>
+  </div>
+</section>
+
+<section id="end" hidden>
+  <div class="tape"></div>
+  <h2 class="verdict" id="verdict"></h2>
+  <p id="verdictText"></p>
+  <div class="endstats" id="endStats"></div>
+  <h2>What it teaches</h2>
+  <div class="lessons" id="lessons"></div>
+  <button class="primary" id="restart" style="margin-top:16px">Play again</button>
+</section>
+</main>
+
+<script>
+const MONTH_S = 5, TOTAL = 36, PHP_MONTH = 18, MAX_E = 10;
+const $ = id => document.getElementById(id);
+const clamp = (v,a=0,b=100) => Math.max(a, Math.min(b, v));
+const rnd = Math.random;
+let S, last = 0, raf = null;
+
+const ACTIONS = [
+  {id:"feat", icon:"✨", name:"New feature", cost:()=>4, hint:"Happier users, more debt"},
+  {id:"test", icon:"🧪", name:"Write tests",    cost:()=>3, hint:"Fewer new bugs"},
+  {id:"upd",  icon:"🔄", name:"Update",       cost:()=>Math.min(MAX_E, 2+Math.floor(S.age/4)), hint:()=>S.age<1?"Already up to date":`Site offline for ${updDur().toFixed(0)}s`},
+  {id:"ref",  icon:"🧹", name:"Clean up code", cost:()=>3, hint:"Less tech debt"}
+];
+const updDur = () => 1.5 + S.age*0.45;
+
+function newGame(){
+  S = {m:0, coins:0, energy:6, happy:70, health:100, debt:15, test:20, age:1, feat:3,
+       bugs:[], bugId:0, busy:null, event:null, nextEventAt:14, phpDone:false, php:"", breaches:0,
+       infected:false, eol:false, stats:{feat:0,test:0,upd:0,ref:0,squash:0}, maxAge:1, diary:[], paused:false, over:false};
+  $("bugs").innerHTML=""; $("eventBox").innerHTML=""; $("diary").innerHTML="";
+  buildActions();
+  note("The site is live. Three features, a few bugs, everything to look after.");
+}
+
+/* ---------- diario e pop ---------- */
+function note(t, cls=""){
+  S.diary.unshift([`Month ${Math.floor(S.m)+1}: ${t}`, cls]);
+  S.diary = S.diary.slice(0,6);
+  $("diary").innerHTML = S.diary.map(d=>`<li class="${d[1]}">${d[0]}</li>`).join("");
+}
+function pop(text, cls, x, y){
+  const st = $("stage"), el = document.createElement("div");
+  el.className = "pop "+cls; el.textContent = text;
+  el.style.left = (x ?? st.clientWidth/2-20)+"px"; el.style.top = (y ?? 110)+"px";
+  st.appendChild(el); setTimeout(()=>el.remove(),1100);
+}
+
+/* ---------- insetti ---------- */
+function spawnBug(n=1){
+  const st = $("stage");
+  for(let i=0;i<n;i++){
+    if(S.bugs.length>=14) return;
+    const b = {id:++S.bugId, x:20+rnd()*(st.clientWidth-64), y:60+rnd()*170, vx:(rnd()-.5)*60, vy:(rnd()-.5)*50};
+    const el = document.createElement("button");
+    el.className="bug"; el.textContent="🐛"; el.setAttribute("aria-label","Squash a bug");
+    el.onclick = ()=>squash(b.id, true);
+    b.el = el; $("bugs").appendChild(el); S.bugs.push(b);
+  }
+}
+function squash(id, byHand){
+  const i = S.bugs.findIndex(b=>b.id===id); if(i<0) return;
+  const b = S.bugs[i]; S.bugs.splice(i,1);
+  b.el.classList.add("squash"); setTimeout(()=>b.el.remove(),300);
+  if(byHand){ S.stats.squash++; S.happy = clamp(S.happy+1.5); pop("+1","pos",b.x,b.y); }
+}
+function squashSome(n){ for(let i=0;i<n && S.bugs.length;i++) squash(S.bugs[0].id,false); }
+
+/* ---------- azioni ---------- */
+function buildActions(){
+  $("actions").innerHTML = ACTIONS.map(a=>`<button id="a-${a.id}"><span class="cost"></span><b>${a.icon} ${a.name}</b><small></small></button>`).join("") + `<div class="busy" id="busy" hidden></div>`;
+  ACTIONS.forEach(a=> $("a-"+a.id).onclick = ()=>doAction(a));
+  $("cells").innerHTML = Array.from({length:MAX_E},()=>"<i></i>").join("");
+}
+function doAction(a){
+  const c = a.cost(); if(S.energy<c || S.busy || S.over) return;
+  S.energy -= c; S.stats[a.id]++;
+  if(a.id==="feat"){
+    const slow = S.debt>65;
+    S.feat++; S.happy=clamp(S.happy+(slow?12:22)); S.debt=clamp(S.debt+12); S.test=clamp(S.test-10);
+    const nb = Math.round(2.4*(1-S.test/100)); spawnBug(nb);
+    pop("+ feature","pos");
+    note(slow ? "New feature shipped, but tech debt made it slow to build and less polished." :
+         `New feature live${nb?`, with ${nb} new bug${nb>1?"s":""}`:""}.`, slow?"neg":"pos");
+  }
+  if(a.id==="test"){
+    S.test=clamp(S.test+30); const n=Math.min(3,S.bugs.length); squashSome(n);
+    pop("+ tests","pos"); note(`Tests caught ${n} bug${n===1?"":"s"} before users did.`,"pos");
+  }
+  if(a.id==="ref"){
+    S.debt=clamp(S.debt-25); squashSome(1); pop("− debt","pos");
+    note("Code cleaned up: the next changes will take less effort.","pos");
+  }
+  if(a.id==="upd"){
+    const d = updDur(); S.busy = {t:0, d, fromAge:S.age};
+    note(S.age>6 ? `Long update: components were ${Math.round(S.age)} months old and other parts need adapting. Site offline.` : "Quick update in progress.", S.age>6?"neg":"");
+  }
+}
+function finishUpdate(){
+  const from = S.busy.fromAge; S.busy=null; S.age=0; S.eol=false;
+  if(S.infected){ S.infected=false; note("Update complete: the hole is closed and the site is clean again.","pos"); }
+  if(S.test<40){ spawnBug(3); note("Updated, but without enough tests something broke: 3 new bugs.","neg"); }
+  else note(`Components updated${from>6?" (finally)":""}.`,"pos");
+  if(S.event && S.event.security) resolveEvent(true);
+}
+
+/* ---------- eventi ---------- */
+function showEvent(ev){
+  S.event = {...ev, t:0};
+  $("stage").classList.toggle("alarm", !!ev.security);
+  const box = $("eventBox");
+  box.innerHTML = `<div class="event ${ev.security?"danger":""}"><h3>${ev.title}</h3><p>${ev.text}</p>
+    ${ev.deadline?`<div class="countdown"><div id="cd"></div></div>`:""}
+    <div class="btns">${(ev.buttons||[]).map((b,i)=>`<button data-i="${i}">${b.label}</button>`).join("")}</div></div>`;
+  box.querySelectorAll(".btns button").forEach(b=> b.onclick = ()=>{ ev.buttons[b.dataset.i].fn(); closeEvent(); });
+}
+function closeEvent(){ S.event=null; $("eventBox").innerHTML=""; $("stage").classList.remove("alarm"); S.nextEventAt = S.m + 3 + rnd()*3; }
+function resolveEvent(ok){ const e=S.event; closeEvent(); ok ? e.onSuccess?.() : e.onFail?.(); }
+
+function phpEvent(){
+  S.phpDone = true;
+  const fresh = S.age<=3;
+  showEvent({ security:true, deadline:14,
+    title:"🚨 Critical flaw in the site’s engine",
+    text: `Two critical vulnerabilities in the component that runs your site. Update before time runs out! ${fresh?"Your components are recent: this will be quick.":`Your components are ${Math.round(S.age)} months old: the update will take a while.`}`,
+    buttons:[],
+    onSuccess:()=>{ S.php = fresh?"rapido":"lento"; },
+    onFail:()=>{ S.php="violato"; S.infected=true; S.breaches++; S.health=clamp(S.health-35); S.happy=clamp(S.happy-30);
+      note("Attack succeeded: user data exposed and pages defaced. The site stays infected until you update.","neg"); pop("HACKED","neg"); }
+  });
+  if(S.busy) S.php = "in corso";
+}
+const POOL = [
+  ()=> S.age<=3 ? (note("Vulnerability in a third-party library: your components were up to date, no harm done.","pos"), null) : ({
+    security:true, deadline:10, title:"Vulnerable library",
+    text:"The payments component has a security hole. Update before the timer runs out, or risk an attack.", buttons:[],
+    onFail:()=>{ if(rnd()<.6){ S.breaches++; S.health=clamp(S.health-25); S.happy=clamp(S.happy-15); note("Someone exploited the library vulnerability.","neg"); pop("hacked","neg"); } else note("Nobody exploited the hole. This time.",""); }
+  }),
+  ()=>{ const slow = S.debt>50; if(slow){ S.health=clamp(S.health-15); S.happy=clamp(S.happy-10); note("Traffic spike: code full of shortcuts can’t cope and the site slows down.","neg"); pop("slow!","neg"); }
+        else { S.coins+=15; S.happy=clamp(S.happy+6); note("Traffic spike handled smoothly: +€15k.","pos"); pop("+€15k","pos"); } return null; },
+  ()=>{ if(S.age>6){ spawnBug(4); note("Browsers updated: old components start showing weird bugs.","neg"); }
+        else note("Browsers updated. Your components are recent: no effect.","pos"); return null; },
+  ()=>{ const hard = S.test<40 || S.debt>50; if(hard){ S.energy=0; note("A developer leaves. With no tests and messy code, the newcomer struggles to understand it: energy drained.","neg"); }
+        else note("A developer leaves, but clean code and tests help the newcomer get up to speed.","pos"); return null; },
+  ()=>({ title:"A client wants a feature yesterday", text:"It can be done right away, but only by cutting corners.", deadline:12,
+    buttons:[
+      {label:"Rush it", fn:()=>{ S.feat++; S.coins+=12; S.debt=clamp(S.debt+25); spawnBug(2); note("Feature rushed out: +€12k, but lots of tech debt.",""); }},
+      {label:"Explain the timeline", fn:()=>{ S.happy=clamp(S.happy-8); note("Unhappy client, but the code stays clean.",""); }}
+    ], onFail:()=>{ S.happy=clamp(S.happy-8); note("No answer to the client: they complained.","neg"); } }),
+  ()=>{ if(S.age>=8 && !S.eol){ S.eol=true; note("End of support: the vendor will no longer fix the version you’re using.","neg"); } else return POOL[1](); return null; }
+];
+
+/* ---------- loop ---------- */
+function tick(dt){
+  if(S.paused || S.over) return;
+  const prevMonth = Math.floor(S.m);
+  S.m += dt/MONTH_S; S.age += dt/MONTH_S; S.maxAge = Math.max(S.maxAge, S.age);
+  if(Math.floor(S.m)!==prevMonth && S.m>=TOTAL) return finish();
+  S.energy = Math.min(MAX_E, S.energy + dt*0.85);
+
+  const offline = !!S.busy, nb = S.bugs.length;
+  S.happy = clamp(S.happy - dt*(0.9 + nb*0.22 + (offline?1.6:0) + (S.infected?1:0)));
+  S.test  = clamp(S.test - dt*0.25);
+  S.debt  = clamp(S.debt + dt*0.12);
+  const spawnRate = (0.07 + S.debt/100*0.22 + (S.age>8?0.08:0)) * (1 - S.test/130);
+  if(rnd() < spawnRate*dt) spawnBug(1);
+  let dh = 0;
+  if(nb>4) dh -= (nb-4)*0.55;
+  if(S.debt>70) dh -= 0.7;
+  if(S.infected) dh -= 1.6;
+  if(S.eol) dh -= 0.3;
+  if(dh===0 && nb<=2 && S.debt<60) dh = 0.8;
+  S.health = clamp(S.health + dh*dt);
+  if(!offline) S.coins += dt * S.feat * 0.22 * (S.happy/100);
+
+  if(S.busy){ S.busy.t += dt; if(S.busy.t>=S.busy.d) finishUpdate(); }
+  if(S.event && S.event.deadline){ S.event.t += dt; if(S.event.t>=S.event.deadline) resolveEvent(false); }
+  if(!S.event){
+    if(!S.phpDone && S.m>=PHP_MONTH) phpEvent();
+    else if(S.m>=S.nextEventAt && S.m<TOTAL-1){
+      const ev = POOL[Math.floor(rnd()*POOL.length)]();
+      if(ev) showEvent(ev); else S.nextEventAt = S.m + 3 + rnd()*3;
+    }
+  }
+  moveBugs(dt);
+  if(S.health<=0) return finish("crash");
+  if(S.happy<=0) return finish("utenti");
+  if(S.m>=TOTAL) return finish();
+}
+function moveBugs(dt){
+  const st=$("stage"), W=st.clientWidth-44, H=250;
+  S.bugs.forEach(b=>{
+    b.vx += (rnd()-.5)*40*dt; b.vy += (rnd()-.5)*40*dt;
+    b.vx = Math.max(-70,Math.min(70,b.vx)); b.vy = Math.max(-55,Math.min(55,b.vy));
+    b.x += b.vx*dt; b.y += b.vy*dt;
+    if(b.x<4||b.x>W){ b.vx*=-1; b.x=Math.max(4,Math.min(W,b.x)); }
+    if(b.y<50||b.y>H){ b.vy*=-1; b.y=Math.max(50,Math.min(H,b.y)); }
+    b.el.style.transform = `translate(${b.x}px,${b.y}px) scaleX(${b.vx<0?-1:1})`;
+  });
+}
+
+/* ---------- disegno ---------- */
+function meter(id,v,label,invert){
+  const m=$(id), d=m.querySelector(".bar div");
+  d.style.width=clamp(v)+"%";
+  const bad = invert ? v>=65 : v<30, good = invert ? v<35 : v>=60;
+  d.style.background = bad?"var(--danger)":good?"var(--ok)":"var(--signal)";
+  m.querySelector(".v").textContent = label;
+}
+function draw(){
+  if(!S || S.over) return;
+  const mo = Math.min(TOTAL, Math.floor(S.m)+1);
+  $("month").textContent = `Month ${mo}`;
+  $("tl").style.width = (S.m/TOTAL*100)+"%";
+  $("coins").textContent = "€"+Math.round(S.coins)+"k";
+  meter("m-happy",S.happy,Math.round(S.happy)+"%");
+  meter("m-health",S.health,Math.round(S.health)+"%");
+  meter("m-debt",S.debt,Math.round(S.debt)+"%",true);
+  meter("m-test",S.test,Math.round(S.test)+"%");
+  meter("m-age",S.age/12*100, S.age<1?"up to date":`${Math.floor(S.age)} months${S.eol?", unsupported":""}`,true);
+
+  $("cells").querySelectorAll("i").forEach((c,i)=>c.classList.toggle("on", i<Math.floor(S.energy)));
+  ACTIONS.forEach(a=>{
+    const b=$("a-"+a.id), c=a.cost();
+    b.querySelector(".cost").textContent = "⚡"+c;
+    b.querySelector("small").textContent = typeof a.hint==="function"?a.hint():a.hint;
+    b.disabled = S.energy<c || !!S.busy;
+    b.hidden = !!S.busy;
+  });
+  const busy=$("busy");
+  if(S.busy){ busy.hidden=false; busy.innerHTML=`🔄 Updating, site offline…<div class="bar"><div style="width:${S.busy.t/S.busy.d*100}%"></div></div>`; }
+  else busy.hidden=true;
+  if(S.event && S.event.deadline && $("cd")) $("cd").style.width = (100 - S.event.t/S.event.deadline*100)+"%";
+
+  // aspetto del personaggio
+  const pet=$("pet"), nb=S.bugs.length;
+  const mood = S.busy?"sleep": S.infected?"infected": (S.health<35||nb>6)?"sick": (S.happy<35)?"sad":"ok";
+  pet.className = "pet "+({sleep:"sleep",infected:"sick infected",sick:"sick",sad:"sad",ok:""}[mood]);
+  $("dust").setAttribute("opacity", (S.debt/100).toFixed(2));
+  $("crack").setAttribute("opacity", S.health<50 ? ((50-S.health)/50).toFixed(2) : 0);
+  $("web").setAttribute("opacity", Math.min(1, Math.max(0,(S.age-4)/6)).toFixed(2));
+  $("zzz").setAttribute("opacity", S.busy?1:0);
+  $("led").setAttribute("fill", S.infected?"#9A6FB0": S.event?.security ? (Math.floor(performance.now()/300)%2?"#C8402F":"#F2C230") : S.health<35?"#C8402F":"#2F7D5B");
+  const eyeRy = S.busy?1.5 : mood==="sick"?3 : 8;
+  $("eyeL").setAttribute("ry",eyeRy); $("eyeR").setAttribute("ry",eyeRy);
+  const mouth = {ok:"M60 88 Q75 98 90 88", sad:"M60 94 Q75 84 90 94", sick:"M58 92 Q67 86 75 92 Q83 98 92 92", infected:"M58 92 Q67 86 75 92 Q83 98 92 92", sleep:"M66 90 L84 90"}[mood];
+  $("mouth").setAttribute("d",mouth);
+
+  // cosa dice
+  let say="";
+  if(S.busy) say="Updating, back in a sec…";
+  else if(S.infected) say="Someone broke in! Update me!";
+  else if(S.event?.security) say="Quick, update me!";
+  else if(nb>=6) say="Itchy! Too many bugs on me";
+  else if(S.health<35) say="I don’t feel well…";
+  else if(S.debt>65) say="I’m covered in dust, clean me up";
+  else if(S.age>9) say="I feel old and creaky";
+  else if(S.happy<35) say="Users are bored, I need something new";
+  else if(S.test<15 && S.feat>4) say="Nobody checks if I break…";
+  $("bubble").textContent = say;
+}
+function loop(ts){
+  const dt = Math.min(0.1,(ts-last)/1000 || 0); last = ts;
+  tick(dt); draw();
+  if(!S.over) raf = requestAnimationFrame(loop);
+}
+
+/* ---------- fine ---------- */
+function finish(reason){
+  if(S.over) return; S.over=true; cancelAnimationFrame(raf);
+  $("game").hidden=true; $("end").hidden=false; window.scrollTo(0,0);
+  const st=S.stats, tot=st.feat+st.test+st.upd+st.ref || 1;
+  const maint=Math.round((st.test+st.upd+st.ref)/tot*100);
+  const mo = Math.min(TOTAL, Math.floor(S.m)+1);
+  let v,vt;
+  if(reason==="crash"){ v="The site went down"; vt=`In month ${mo} the site gave up: too many bugs, too much debt, or one attack too many.`; }
+  else if(reason==="utenti"){ v="Users are gone"; vt=`By month ${mo} nobody uses it anymore.`; }
+  else if(S.health>=60 && S.happy>=50 && S.age<=6 && S.breaches===0){ v="Healthy site"; vt="Three years on, the site keeps growing, holds up, and updates without drama."; }
+  else if(S.age>8 || S.debt>=70){ v="Nearing end of life"; vt="It still works, but it’s fragile and expensive to change. Soon someone will suggest rebuilding it from scratch."; }
+  else { v="Survived"; vt="The site is still standing, a little battered."; }
+  $("verdict").textContent=v; $("verdictText").textContent=vt;
+  const box=(l,val)=>`<div class="stat"><b>${val}</b><span>${l}</span></div>`;
+  $("endStats").innerHTML = box("Revenue","€"+Math.round(S.coins)+"k")+box("Features",S.feat)+box("Bugs squashed by hand",st.squash)+box("Attacks suffered",S.breaches);
+  const L=[];
+  L.push(`You spent ${maint}% of your actions on tests, updates and cleanup. In real life, maintenance often accounts for more than half the total cost of software: it isn’t an extra, it’s the main job.`);
+  if(S.php==="rapido") L.push("When the critical flaw hit, your components were recent and the update was quick. That’s the difference between the sites that are safe the day after a security alert and the ones that have to go offline.");
+  if(S.php==="lento") L.push("The critical flaw caught you with old components: you made it, but with a long update and the site offline. Putting updates off doesn’t save money, it moves the cost to the worst possible moment.");
+  if(S.php==="violato") L.push("During the critical flaw your site was attacked. In real life that means exposed user data, legal notification duties and reputational damage that cost far more than an update.");
+  if(st.squash>15) L.push(`You squashed ${st.squash} bugs by hand. That’s firefighting: it works, but it never ends. Tests stop bugs from hatching in the first place.`);
+  if(S.debt>=50) L.push("Tech debt ended up high: every shortcut makes all later changes slower and riskier, like interest on a loan.");
+  if(st.feat<4) L.push("You shipped few new features: a site that’s only maintained stays safe but loses users. Balancing new things and care is the real craft.");
+  $("lessons").innerHTML=L.map(x=>`<p>${x}</p>`).join("");
+}
+
+/* ---------- avvio ---------- */
+function startGame(){ newGame(); $("intro").hidden=true; $("end").hidden=true; $("game").hidden=false; window.scrollTo(0,0); last=performance.now(); raf=requestAnimationFrame(loop); }
+$("start").onclick = startGame;
+$("restart").onclick = startGame;
+$("pause").onclick = ()=>{ S.paused=!S.paused; $("pause").textContent=S.paused?"▶":"II"; $("pause").setAttribute("aria-label",S.paused?"Resume":"Pause"); };
+document.addEventListener("visibilitychange",()=>{ if(document.hidden && S && !S.over){ S.paused=true; $("pause").textContent="▶"; } });
+</script>
+</body>
+</html>
