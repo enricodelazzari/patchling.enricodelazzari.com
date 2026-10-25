@@ -1,228 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Patchling</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&display=swap" rel="stylesheet">
-<style>
-:root{
-  --bg:#E9EEEC; --surface:#F7FAF9; --ink:#1E2A32; --muted:#55636B; --line:#C9D3D0;
-  --signal:#F2C230; --danger:#C8402F; --ok:#2F7D5B; --accent:#2B5D7C; --body-c:#8FC1B0; --screen:#E8F5EF; --stage:#DCE6E2;
-  --display:"Bricolage Grotesque","Avenir Next","Segoe UI",system-ui,sans-serif;
-  --text:"Atkinson Hyperlegible","Segoe UI",system-ui,-apple-system,sans-serif;
-  color-scheme:light; box-sizing:border-box;
-  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
-}
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    --bg:#141C21; --surface:#1D282E; --ink:#E3EBE8; --muted:#9AA8AE; --line:#33424A;
-    --signal:#E8B923; --danger:#E0604E; --ok:#4FA67F; --accent:#7FB3D3; --body-c:#5E9A86; --screen:#D9EEE5; --stage:#1A2429; color-scheme:dark;
-  }
-}
-:root[data-theme="dark"]{
-  --bg:#141C21; --surface:#1D282E; --ink:#E3EBE8; --muted:#9AA8AE; --line:#33424A;
-  --signal:#E8B923; --danger:#E0604E; --ok:#4FA67F; --accent:#7FB3D3; --body-c:#5E9A86; --screen:#D9EEE5; --stage:#1A2429; color-scheme:dark;
-}
-*,*::before,*::after{box-sizing:inherit}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--text);font-size:17px;line-height:1.5;-webkit-tap-highlight-color:transparent}
-main{max-width:560px;margin:0 auto;padding:16px 16px 40px}
-h1,h2,h3{font-family:var(--display);line-height:1.1;margin:0}
-h1{font-size:clamp(2.2rem,9vw,3.2rem);font-weight:800;letter-spacing:-.02em}
-h2{font-size:1.4rem;font-weight:800}
-p{margin:.6em 0}
-.muted{color:var(--muted)}
-.tape{height:12px;background:repeating-linear-gradient(-45deg,var(--signal) 0 12px,var(--ink) 12px 24px);border-radius:2px}
-button{font:inherit;cursor:pointer;color:inherit}
-button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-.primary{background:var(--ink);color:var(--bg);border:0;border-radius:12px;padding:14px 20px;font-weight:700;width:100%;font-size:1.05rem}
-section[hidden]{display:none!important}
-
-/* intro */
-.hero{padding:16px 0 4px}
-ol.cycle{list-style:none;padding:0;margin:14px 0;counter-reset:c}
-ol.cycle li{counter-increment:c;display:grid;grid-template-columns:2rem 1fr;gap:0 10px;padding:12px 14px;border-top:1px solid var(--line)}
-ol.cycle li::before{content:counter(c);font-family:var(--display);font-weight:800;font-size:1.3rem;color:var(--muted)}
-ol.cycle li.here{background:linear-gradient(90deg,color-mix(in srgb,var(--signal) 32%,transparent),transparent);border-radius:10px;border-top-color:transparent;margin:4px 0}
-ol.cycle li.here + li{border-top-color:transparent}
-ol.cycle span{grid-column:2;color:var(--muted);font-size:.93rem}
-.rules{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin:14px 0 18px}
-.rules ul{margin:.3em 0;padding-left:1.2em}
-.rules li{margin:.2em 0}
-
-/* game */
-.hud{display:flex;align-items:center;gap:10px;margin-bottom:8px}
-.month{font-family:var(--display);font-weight:800;font-size:1.25rem;white-space:nowrap}
-.timeline{flex:1;height:8px;background:var(--line);border-radius:4px;position:relative;overflow:visible}
-.timeline .fill{height:100%;background:var(--ink);border-radius:4px}
-.timeline .php{position:absolute;left:50%;top:-4px;width:4px;height:16px;background:var(--danger);border-radius:2px}
-.coins{font-weight:700;white-space:nowrap}
-.pause{border:2px solid var(--ink);background:transparent;border-radius:50%;width:36px;height:36px;font-weight:800;line-height:1;padding:0}
-
-.stage{position:relative;height:300px;background:var(--stage);border-radius:18px;overflow:hidden;touch-action:manipulation;user-select:none}
-.stage.alarm{animation:alarm .8s steps(2) infinite}
-@keyframes alarm{50%{box-shadow:inset 0 0 0 5px var(--danger)}}
-.floor{position:absolute;left:0;right:0;bottom:0;height:46px;background:color-mix(in srgb,var(--ink) 8%,transparent)}
-.pet{position:absolute;left:50%;bottom:34px;width:150px;margin-left:-75px;transform-origin:50% 100%;animation:bob 2.4s ease-in-out infinite}
-@keyframes bob{50%{transform:translateY(-6px) scaleY(1.02)}}
-.pet.sad{animation-duration:4s}
-.pet.sick{animation:shiver .25s linear infinite}
-@keyframes shiver{25%{transform:translateX(-2px)}75%{transform:translateX(2px)}}
-.pet.sleep{animation:none;filter:saturate(.4)}
-.pet.infected .bodyfill{fill:#9A6FB0}
-.pet svg{width:100%;height:auto;display:block;overflow:visible}
-.bubble{position:absolute;left:50%;top:14px;transform:translateX(-50%);background:var(--surface);color:var(--ink);border:2px solid var(--ink);border-radius:14px;padding:6px 12px;font-weight:700;font-size:.92rem;max-width:86%;text-align:center;transition:opacity .3s}
-.bubble:empty{opacity:0}
-.bug{position:absolute;width:44px;height:44px;display:grid;place-items:center;font-size:24px;border:0;background:transparent;padding:0;cursor:pointer;z-index:3}
-.bug.squash{animation:squash .3s forwards;pointer-events:none}
-@keyframes squash{to{transform:scale(1.8);opacity:0}}
-.pop{position:absolute;font-weight:800;font-family:var(--display);pointer-events:none;animation:pop 1.1s forwards;z-index:4;font-size:1.05rem}
-@keyframes pop{to{transform:translateY(-40px);opacity:0}}
-.pop.pos{color:var(--ok)} .pop.neg{color:var(--danger)}
-
-.event{position:absolute;left:10px;right:10px;bottom:10px;background:var(--surface);border:2px solid var(--ink);border-radius:14px;padding:10px 12px;z-index:5;box-shadow:0 8px 24px rgba(0,0,0,.2)}
-.event.danger{border-color:var(--danger)}
-.event h3{font-size:1.02rem;font-weight:800}
-.event p{margin:.2em 0 .4em;font-size:.88rem;line-height:1.35}
-.event .countdown{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-bottom:6px}
-.event .countdown div{height:100%;background:var(--danger)}
-.event .btns{display:flex;gap:8px}
-.event .btns button{flex:1;border:2px solid var(--ink);background:var(--bg);border-radius:10px;padding:8px;font-weight:700;font-size:.88rem}
-
-.meters{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;margin:12px 0}
-.meter .row{display:flex;justify-content:space-between;font-size:.85rem;font-weight:700}
-.meter .bar{height:10px;background:var(--line);border-radius:5px;overflow:hidden;margin-top:3px}
-.meter .bar div{height:100%;border-radius:5px;transition:width .2s linear,background .3s}
-
-.energy{display:flex;align-items:center;gap:8px;font-size:.9rem;font-weight:700;margin-bottom:8px}
-.energy .cells{display:flex;gap:3px;flex:1}
-.energy .cells i{flex:1;height:12px;border-radius:3px;background:var(--line)}
-.energy .cells i.on{background:var(--signal)}
-.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.actions button{border:2px solid var(--ink);background:var(--surface);border-radius:14px;padding:10px;text-align:left;min-height:68px;position:relative}
-.actions button b{display:block;font-size:1rem}
-.actions button small{color:var(--muted);font-size:.8rem;line-height:1.25;display:block}
-.actions button .cost{position:absolute;top:8px;right:10px;font-weight:800;font-family:var(--display)}
-.actions button:disabled{opacity:.4;cursor:not-allowed}
-.actions button:not(:disabled):active{transform:scale(.97)}
-.actions .busy{grid-column:1/-1;border:2px dashed var(--ink);border-radius:14px;padding:10px;font-weight:700;text-align:center}
-.actions .busy .bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden;margin-top:6px}
-.actions .busy .bar div{height:100%;background:var(--accent)}
-
-.diary{margin-top:14px}
-.diary ul{list-style:none;padding:0;margin:6px 0}
-.diary li{padding:6px 0;border-top:1px solid var(--line);font-size:.9rem}
-.diary li.neg{color:var(--danger)} .diary li.pos{color:var(--ok)}
-
-/* end */
-.verdict{font-size:clamp(2rem,8vw,2.8rem);margin:14px 0 4px}
-.endstats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:14px 0}
-.stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
-.stat b{display:block;font-family:var(--display);font-size:1.3rem;font-weight:800}
-.stat span{font-size:.8rem;color:var(--muted)}
-.lessons p{border-left:4px solid var(--signal);padding-left:12px}
-
-@media (prefers-reduced-motion: reduce){.pet,.pet.sick{animation:none}.stage.alarm{animation:none;box-shadow:inset 0 0 0 5px var(--danger)}}
-</style>
-</head>
-<body>
-<main>
-
-<section id="intro">
-  <div class="tape"></div>
-  <div class="hero">
-    <h1>Patchling</h1>
-    <p>Your company’s website is alive: it’s hungry for new things, it catches bugs, it gets old. You have three years (three minutes) to keep it healthy.</p>
-  </div>
-  <h2>The life of a piece of software</h2>
-  <ol class="cycle">
-    <li><b>Analysis</b><span>Deciding what it should do, and for whom.</span></li>
-    <li><b>Development</b><span>Writing the code, often on top of components built by others, like PHP.</span></li>
-    <li><b>Testing</b><span>Checking that it works, and that changes don’t break everything else.</span></li>
-    <li><b>Release</b><span>The site goes live.</span></li>
-    <li class="here"><b>Maintenance — you are here</b><span>The longest phase: bugs, updates, cleanup, new features.</span></li>
-    <li><b>End of life</b><span>The site gets rebuilt, or stays online with nobody looking after it.</span></li>
-  </ol>
-  <div class="rules">
-    <ul>
-      <li>Tap the bugs 🐛 to squash them.</li>
-      <li>Spend your team’s energy on the four actions below. It recharges on its own.</li>
-      <li>Listen to your site: it tells you when something’s wrong.</li>
-      <li>Halfway through, a critical vulnerability hits. Be ready.</li>
-    </ul>
-  </div>
-  <button class="primary" id="start">Switch on the site</button>
-</section>
-
-<section id="game" hidden>
-  <div class="hud">
-    <span class="month" id="month">Month 1</span>
-    <div class="timeline"><div class="fill" id="tl"></div><span class="php" title="Critical vulnerability"></span></div>
-    <span class="coins" id="coins">€0k</span>
-    <button class="pause" id="pause" aria-label="Pause">II</button>
-  </div>
-
-  <div class="stage" id="stage">
-    <div class="bubble" id="bubble"></div>
-    <div class="floor"></div>
-    <div class="pet" id="pet">
-      <svg viewBox="0 0 150 170" aria-hidden="true">
-        <line x1="75" y1="4" x2="75" y2="26" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
-        <circle id="led" cx="75" cy="6" r="7" fill="#2F7D5B"/>
-        <rect class="bodyfill" x="12" y="24" width="126" height="132" rx="30" fill="var(--body-c)" stroke="currentColor" stroke-width="4"/>
-        <rect x="30" y="42" width="90" height="62" rx="14" fill="var(--screen)" stroke="currentColor" stroke-width="3"/>
-        <g id="eyes" fill="#1E2A32">
-          <ellipse id="eyeL" cx="56" cy="68" rx="6" ry="8"/>
-          <ellipse id="eyeR" cx="94" cy="68" rx="6" ry="8"/>
-        </g>
-        <path id="mouth" d="M60 88 Q75 98 90 88" fill="none" stroke="#1E2A32" stroke-width="4" stroke-linecap="round"/>
-        <g fill="currentColor" opacity=".55"><rect x="34" y="118" width="40" height="6" rx="3"/><rect x="34" y="130" width="28" height="6" rx="3"/><circle cx="112" cy="127" r="7"/></g>
-        <g id="dust" opacity="0" fill="#6B5A44">
-          <circle cx="24" cy="60" r="5"/><circle cx="128" cy="96" r="6"/><circle cx="40" cy="146" r="4"/><circle cx="118" cy="40" r="4"/><circle cx="20" cy="112" r="6"/><circle cx="98" cy="148" r="5"/><circle cx="132" cy="136" r="4"/>
-        </g>
-        <path id="crack" opacity="0" d="M120 30 L108 52 L118 60 L104 84 M40 156 L50 138 L42 128" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-        <g id="web" opacity="0" stroke="currentColor" stroke-width="1.5" fill="none">
-          <path d="M12 54 Q30 40 42 24 M12 54 L42 24 M12 40 Q22 34 28 24 M12 46 Q26 38 36 24"/>
-        </g>
-        <text id="zzz" x="128" y="20" font-size="20" font-weight="800" fill="currentColor" opacity="0" font-family="sans-serif">z z</text>
-      </svg>
-    </div>
-    <div id="bugs"></div>
-    <div id="eventBox"></div>
-  </div>
-
-  <div class="meters">
-    <div class="meter" id="m-happy"><div class="row"><span>Happy users</span><span class="v"></span></div><div class="bar"><div></div></div></div>
-    <div class="meter" id="m-health"><div class="row"><span>Site health</span><span class="v"></span></div><div class="bar"><div></div></div></div>
-    <div class="meter" id="m-debt"><div class="row"><span>Tech debt</span><span class="v"></span></div><div class="bar"><div></div></div></div>
-    <div class="meter" id="m-test"><div class="row"><span>Test coverage</span><span class="v"></span></div><div class="bar"><div></div></div></div>
-    <div class="meter" id="m-age" style="grid-column:1/-1"><div class="row"><span>Component age</span><span class="v"></span></div><div class="bar"><div></div></div></div>
-  </div>
-
-  <div class="energy"><span>Team energy</span><div class="cells" id="cells"></div></div>
-  <div class="actions" id="actions"></div>
-
-  <div class="diary">
-    <h2>Log</h2>
-    <ul id="diary"></ul>
-  </div>
-</section>
-
-<section id="end" hidden>
-  <div class="tape"></div>
-  <h2 class="verdict" id="verdict"></h2>
-  <p id="verdictText"></p>
-  <div class="endstats" id="endStats"></div>
-  <h2>What it teaches</h2>
-  <div class="lessons" id="lessons"></div>
-  <button class="primary" id="restart" style="margin-top:16px">Play again</button>
-</section>
-</main>
-
-<script>
 const MONTH_S = 5, TOTAL = 36, PHP_MONTH = 18, MAX_E = 10;
 const $ = id => document.getElementById(id);
 const clamp = (v,a=0,b=100) => Math.max(a, Math.min(b, v));
@@ -503,14 +278,89 @@ function finish(reason){
   if(S.debt>=50) L.push("Tech debt ended up high: every shortcut makes all later changes slower and riskier, like interest on a loan.");
   if(st.feat<4) L.push("You shipped few new features: a site that’s only maintained stays safe but loses users. Balancing new things and care is the real craft.");
   $("lessons").innerHTML=L.map(x=>`<p>${x}</p>`).join("");
+  submitResult(reason, mo);
+}
+
+/* ---------- classifica e condivisione ---------- */
+const NAME_KEY = "patchling:name";
+const esc = t => String(t).replace(/[&<>"']/g, c=>`&#${c.charCodeAt(0)};`);
+let result = null;
+
+async function api(method, path, body){
+  const r = await fetch("/api/"+path, {method, headers:{"Accept":"application/json","Content-Type":"application/json"}, body: body && JSON.stringify(body)});
+  const data = await r.json().catch(()=>({}));
+  if(!r.ok) throw Object.assign(new Error(data.message || r.statusText), {data});
+  return data;
+}
+async function submitResult(reason, months){
+  const game = S, sc = $("scorecard");
+  const id = await game.id;
+  if(S!==game) return;
+  if(!id){ sc.hidden=true; return; }
+  sc.hidden=false; sc.innerHTML=`<p class="muted">Saving your score…</p>`;
+  try{
+    const r = await api("POST", `games/${id}/result`, {
+      outcome: reason==="crash"?"crash": reason==="utenti"?"users":"completed", months,
+      revenue: Math.round(S.coins), features: S.feat, squashed: S.stats.squash, breaches: S.breaches,
+      health: Math.round(S.health), happy: Math.round(S.happy), debt: Math.round(S.debt), age: Math.round(S.age*10)/10,
+      name: localStorage.getItem(NAME_KEY)
+    });
+    if(S!==game) return;
+    result = {...r.data, claim: r.claim_token};
+    renderScore(); loadBoard();
+  }catch{ if(S===game) sc.innerHTML=`<p class="muted">Your score couldn’t be saved this time.</p>`; }
+}
+function shareText(r){
+  const pts = r.score.toLocaleString("en");
+  return ["crashed","users_gone"].includes(r.verdict)
+    ? `My website lasted ${r.months} month${r.months===1?"":"s"} in Patchling (${pts} points). Can you keep yours alive longer?`
+    : `${r.verdict_label}: my website survived three years in Patchling with ${pts} points. Can you keep yours alive?`;
+}
+function renderScore(){
+  const r = result, url = encodeURIComponent(r.share_url), text = encodeURIComponent(shareText(r));
+  $("scorecard").innerHTML = `
+    <div class="score"><b>${r.score.toLocaleString("en")} points</b><span>${r.name ? `#${r.rank} on the leaderboard` : `Good for #${r.rank} on the leaderboard`}</span></div>
+    ${r.name ? "" : `<form class="nameform" id="nameForm"><label for="nick">Put your name on the leaderboard</label>
+      <div><input id="nick" maxlength="20" minlength="2" required autocomplete="nickname" placeholder="Your name"><button>Save</button></div><p class="err" id="nameErr"></p></form>`}
+    <div class="share">
+      ${navigator.share ? `<button class="primary" id="shareBtn">Share your result</button>` : `<b>Share your result</b>`}
+      <div class="links">
+        <a href="https://x.com/intent/post?text=${text}&url=${url}" target="_blank" rel="noopener">X</a>
+        <a href="https://bsky.app/intent/compose?text=${text}%20${url}" target="_blank" rel="noopener">Bluesky</a>
+        <a href="https://www.linkedin.com/sharing/share-offsite/?url=${url}" target="_blank" rel="noopener">LinkedIn</a>
+        <a href="https://www.facebook.com/sharer/sharer.php?u=${url}" target="_blank" rel="noopener">Facebook</a>
+        <a href="https://wa.me/?text=${text}%20${url}" target="_blank" rel="noopener">WhatsApp</a>
+        <button id="copyBtn">Copy link</button>
+      </div>
+    </div>`;
+  $("shareBtn")?.addEventListener("click", ()=> navigator.share({title:"Patchling", text:shareText(r), url:r.share_url}).catch(()=>{}));
+  $("copyBtn").onclick = async ()=>{ await navigator.clipboard.writeText(r.share_url); $("copyBtn").textContent="Copied!"; };
+  $("nameForm")?.addEventListener("submit", saveName);
+}
+async function saveName(e){
+  e.preventDefault();
+  const name = $("nick").value.trim();
+  try{
+    const r = await api("PATCH", `results/${result.id}`, {name, claim_token: result.claim});
+    localStorage.setItem(NAME_KEY, name);
+    result = {...r.data, claim: result.claim};
+    renderScore(); loadBoard();
+  }catch(err){ $("nameErr").textContent = err.data?.errors?.name?.[0] || "Couldn’t save your name, try again."; }
+}
+async function loadBoard(){
+  try{
+    const {data} = await api("GET", "leaderboard");
+    const html = data.length ? data.map(r=>`<li${r.id===result?.id?' class="me"':""}><span class="pos">${r.rank}</span>
+      <a href="${esc(r.share_url)}">${esc(r.name)}<small>${esc(r.verdict_label)}</small></a><b>${r.score.toLocaleString("en")}</b></li>`).join("")
+      : `<li class="empty">No scores yet. Be the first!</li>`;
+    document.querySelectorAll(".board").forEach(b=>{ b.hidden=false; b.querySelector("ol").innerHTML=html; });
+  }catch{ document.querySelectorAll(".board").forEach(b=>b.hidden=true); }
 }
 
 /* ---------- avvio ---------- */
-function startGame(){ newGame(); $("intro").hidden=true; $("end").hidden=true; $("game").hidden=false; window.scrollTo(0,0); last=performance.now(); raf=requestAnimationFrame(loop); }
+function startGame(){ newGame(); S.id = api("POST","games").then(g=>g.id, ()=>null); $("scorecard").hidden=true; result=null; $("intro").hidden=true; $("end").hidden=true; $("game").hidden=false; window.scrollTo(0,0); last=performance.now(); raf=requestAnimationFrame(loop); }
 $("start").onclick = startGame;
 $("restart").onclick = startGame;
 $("pause").onclick = ()=>{ S.paused=!S.paused; $("pause").textContent=S.paused?"▶":"II"; $("pause").setAttribute("aria-label",S.paused?"Resume":"Pause"); };
 document.addEventListener("visibilitychange",()=>{ if(document.hidden && S && !S.over){ S.paused=true; $("pause").textContent="▶"; } });
-</script>
-</body>
-</html>
+loadBoard();
